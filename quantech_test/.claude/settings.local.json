@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker:*)",
+      "Bash(/usr/local/bin/docker compose up --build)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker compose up --build)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

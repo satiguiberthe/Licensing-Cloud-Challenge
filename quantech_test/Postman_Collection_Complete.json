@@ -1,0 +1,1952 @@
+{
+  "info": {
+    "name": "Licensing Cloud Management API - Complete Collection",
+    "description": "Collection complète pour tous les services du backend - Gestion de licences cloud",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "licensing-cloud-complete-api"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "license_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "license_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "application_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "item": [
+        {
+          "name": "GET /health/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health/",
+              "host": ["{{base_url}}"],
+              "path": ["health", ""]
+            },
+            "description": "Vérifier l'état de santé de l'API"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has status healthy', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('healthy');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "1.1 Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword123\",\n  \"password_confirm\": \"testpassword123\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register", ""]
+            },
+            "description": "Créer un nouveau compte utilisateur"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('user_token', jsonData.data.token);",
+                  "        console.log('User token saved:', jsonData.data.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has user and token', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login", ""]
+            },
+            "description": "Se connecter avec un utilisateur existant"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('user_token', jsonData.data.token);",
+                  "        console.log('User token saved:', jsonData.data.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me", ""]
+            },
+            "description": "Obtenir les informations de l'utilisateur connecté"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('username');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh", ""]
+            },
+            "description": "Rafraîchir le token JWT de l'utilisateur"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('user_token', jsonData.data.token);",
+                  "        console.log('Token refreshed:', jsonData.data.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout", ""]
+            },
+            "description": "Déconnexion de l'utilisateur"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Licenses",
+      "item": [
+        {
+          "name": "2.1 List All Licenses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", ""]
+            },
+            "description": "Lister toutes les licences"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Create License",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"demo-tenant-001\",\n  \"tenant_name\": \"Demo Company\",\n  \"max_apps\": 5,\n  \"max_executions_per_24h\": 100,\n  \"valid_from\": \"2025-01-01T00:00:00Z\",\n  \"valid_to\": \"2026-01-01T00:00:00Z\",\n  \"contact_email\": \"demo@company.com\",\n  \"contact_name\": \"Demo User\",\n  \"status\": \"ACTIVE\",\n  \"generate_token\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", ""]
+            },
+            "description": "Créer une nouvelle licence avec génération automatique de token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('license_id', jsonData.id);",
+                  "        console.log('License ID saved:', jsonData.id);",
+                  "    }",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('license_token', jsonData.token);",
+                  "        console.log('License token saved:', jsonData.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has license data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('tenant_id');",
+                  "    pm.expect(jsonData).to.have.property('max_apps');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 Get License Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", ""]
+            },
+            "description": "Obtenir les détails d'une licence spécifique"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3.1 Update License",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_name\": \"Updated Company Name\",\n  \"contact_email\": \"updated@company.com\",\n  \"contact_name\": \"Updated Contact\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", ""]
+            },
+            "description": "Mettre à jour une licence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3.2 Delete License",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"License revoked by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", ""]
+            },
+            "description": "Révoquer une licence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 Suspend License",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/suspend/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", "suspend", ""]
+            },
+            "description": "Suspendre une licence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.5 Reactivate License (DELETE suspend)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/suspend/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", "suspend", ""]
+            },
+            "description": "Réactiver une licence suspendue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.6 Upgrade License",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"max_apps\": 10,\n  \"max_executions_per_24h\": 200\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/upgrade/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", "upgrade", ""]
+            },
+            "description": "Mettre à niveau les quotas d'une licence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.7 Get License History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/history/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", "history", ""]
+            },
+            "description": "Obtenir l'historique des modifications d'une licence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.8 Generate License Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"demo-tenant-001\",\n  \"expires_in_hours\": 24\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tokens/generate/",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "generate", ""]
+            },
+            "description": "Générer un nouveau token JWT pour une licence existante"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('license_token', jsonData.token);",
+                  "        console.log('License token generated:', jsonData.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.9 Get Quota Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quota/status/",
+              "host": ["{{base_url}}"],
+              "path": ["quota", "status", ""]
+            },
+            "description": "Obtenir le statut des quotas pour la licence authentifiée"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has quota data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('current_apps');",
+                  "    pm.expect(jsonData).to.have.property('max_apps');",
+                  "    pm.expect(jsonData).to.have.property('executions_last_24h');",
+                  "    pm.expect(jsonData).to.have.property('max_executions_per_24h');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.10 Get License Quota Status (by ID)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/licenses/{{license_id}}/quota-status/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", "{{license_id}}", "quota-status", ""]
+            },
+            "description": "Obtenir le statut des quotas pour une licence spécifique"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Applications",
+      "item": [
+        {
+          "name": "3.1 Register Application (Public API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test Application\",\n  \"description\": \"Application for testing the licensing system\",\n  \"license_token\": \"{{license_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Enregistrer une nouvelle application (endpoint public du challenge)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('application_id', jsonData.id);",
+                  "        console.log('Application ID saved:', jsonData.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has application data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('name');",
+                  "    pm.expect(jsonData).to.have.property('is_active');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 List All Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", ""]
+            },
+            "description": "Lister toutes les applications de la licence authentifiée"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 Get Application Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/{{application_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "{{application_id}}", ""]
+            },
+            "description": "Obtenir les détails d'une application spécifique"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3.1 Update Application",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Application Name\",\n  \"description\": \"Updated description\",\n  \"version\": \"2.0.0\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/{{application_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "{{application_id}}", ""]
+            },
+            "description": "Mettre à jour une application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3.2 Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/{{application_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "{{application_id}}", ""]
+            },
+            "description": "Désactiver/supprimer une application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4 Activate Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/{{application_id}}/activate/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "{{application_id}}", "activate", ""]
+            },
+            "description": "Activer une application"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.5 Get Application Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/{{application_id}}/metrics/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "{{application_id}}", "metrics", ""]
+            },
+            "description": "Obtenir les métriques d'une application spécifique"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.6 Get All Applications Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/applications/metrics/",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "metrics", ""]
+            },
+            "description": "Obtenir les métriques de toutes les applications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.7 Test Max Apps Quota",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"App {{$randomInt}}\",\n  \"description\": \"Testing quota limit\",\n  \"license_token\": \"{{license_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Tester le quota max_apps - Exécuter plusieurs fois jusqu'à obtenir une erreur 400/429"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 400 || pm.response.code === 429) {",
+                  "    console.log('Quota max_apps atteint!');",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('Error:', jsonData.message || jsonData);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Jobs",
+      "item": [
+        {
+          "name": "4.1 Start Job (Public API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": \"{{application_id}}\",\n  \"name\": \"Data Processing Job\",\n  \"description\": \"Process data for analysis\",\n  \"metadata\": {\n    \"priority\": \"high\",\n    \"source\": \"api\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/start",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "start"]
+            },
+            "description": "Démarrer un nouveau job (endpoint public du challenge)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('job_id', jsonData.id);",
+                  "        console.log('Job ID saved:', jsonData.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has job data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('RUNNING');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 Finish Job - Completed (Public API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": \"{{job_id}}\",\n  \"status\": \"COMPLETED\",\n  \"result\": {\n    \"processed_items\": 100,\n    \"success\": true\n  },\n  \"cpu_usage\": 45.5,\n  \"memory_usage\": 512.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/finish",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "finish"]
+            },
+            "description": "Terminer un job avec succès (endpoint public du challenge)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 Finish Job - Failed (Public API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": \"{{job_id}}\",\n  \"status\": \"FAILED\",\n  \"error_message\": \"Processing error occurred\",\n  \"cpu_usage\": 0.0,\n  \"memory_usage\": 0.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/finish",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "finish"]
+            },
+            "description": "Terminer un job en échec (endpoint public du challenge)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 List All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ""]
+            },
+            "description": "Lister tous les jobs de la licence authentifiée"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 Get Job Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/{{job_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "{{job_id}}", ""]
+            },
+            "description": "Obtenir les détails d'un job spécifique"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.6 Get Job Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/statistics/",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "statistics", ""]
+            },
+            "description": "Obtenir les statistiques des jobs"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has statistics', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "    pm.expect(jsonData).to.have.property('running');",
+                  "    pm.expect(jsonData).to.have.property('completed');",
+                  "    pm.expect(jsonData).to.have.property('failed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.7 Get Execution Window",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/executions/window/",
+              "host": ["{{base_url}}"],
+              "path": ["executions", "window", ""]
+            },
+            "description": "Obtenir la fenêtre d'exécution (24h sliding window)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.8 Test Max Executions Quota",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{license_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": \"{{application_id}}\",\n  \"name\": \"Test Job {{$randomInt}}\",\n  \"description\": \"Testing execution quota\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/start",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "start"]
+            },
+            "description": "Tester le quota max_executions_per_24h - Exécuter plusieurs fois jusqu'à obtenir une erreur 429"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 429) {",
+                  "    console.log('Quota max_executions_per_24h atteint!');",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('Error:', jsonData.message || jsonData);",
+                  "}",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('job_id', jsonData.id);",
+                  "        // Terminer le job immédiatement pour libérer le quota",
+                  "        setTimeout(function() {",
+                  "            pm.sendRequest({",
+                  "                url: pm.collectionVariables.get('base_url') + '/jobs/finish',",
+                  "                method: 'POST',",
+                  "                header: {",
+                  "                    'Content-Type': 'application/json',",
+                  "                    'Authorization': 'Bearer ' + pm.collectionVariables.get('license_token')",
+                  "                },",
+                  "                body: {",
+                  "                    mode: 'raw',",
+                  "                    raw: JSON.stringify({",
+                  "                        job_id: jsonData.id,",
+                  "                        status: 'COMPLETED'",
+                  "                    })",
+                  "                }",
+                  "            });",
+                  "        }, 100);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Scénarios de Test Complets",
+      "item": [
+        {
+          "name": "5.1 Scénario Complet - Workflow Standard",
+          "item": [
+            {
+              "name": "Étape 1: Créer un utilisateur",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Nettoyer les variables",
+                      "pm.collectionVariables.set('user_token', '');",
+                      "pm.collectionVariables.set('license_token', '');",
+                      "pm.collectionVariables.set('license_id', '');",
+                      "pm.collectionVariables.set('application_id', '');",
+                      "pm.collectionVariables.set('job_id', '');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"testuser{{$randomInt}}\",\n  \"email\": \"test{{$randomInt}}@example.com\",\n  \"password\": \"testpassword123\",\n  \"password_confirm\": \"testpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register/",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register", ""]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                      "        pm.collectionVariables.set('user_token', jsonData.data.token);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Étape 2: Créer une licence",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{user_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"test-tenant-{{$randomInt}}\",\n  \"tenant_name\": \"Test Company\",\n  \"max_apps\": 3,\n  \"max_executions_per_24h\": 10,\n  \"valid_from\": \"2025-01-01T00:00:00Z\",\n  \"valid_to\": \"2026-01-01T00:00:00Z\",\n  \"generate_token\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/licenses/",
+                  "host": ["{{base_url}}"],
+                  "path": ["licenses", ""]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('license_id', jsonData.id);",
+                      "    }",
+                      "    if (jsonData.token) {",
+                      "        pm.collectionVariables.set('license_token', jsonData.token);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Étape 3: Enregistrer une application",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test App\",\n  \"description\": \"Test application\",\n  \"license_token\": \"{{license_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/apps/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["apps", "register"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('application_id', jsonData.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Étape 4: Démarrer un job",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"application_id\": \"{{application_id}}\",\n  \"name\": \"Test Job\",\n  \"description\": \"Test job execution\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/jobs/start",
+                  "host": ["{{base_url}}"],
+                  "path": ["jobs", "start"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('job_id', jsonData.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Étape 5: Vérifier les quotas",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{user_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/licenses/{{license_id}}/quota-status/",
+                  "host": ["{{base_url}}"],
+                  "path": ["licenses", "{{license_id}}", "quota-status", ""]
+                }
+              }
+            },
+            {
+              "name": "Étape 6: Terminer le job",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"job_id\": \"{{job_id}}\",\n  \"status\": \"COMPLETED\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/jobs/finish",
+                  "host": ["{{base_url}}"],
+                  "path": ["jobs", "finish"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 Scénario - Test Quota Applications",
+          "item": [
+            {
+              "name": "Prérequis: Créer licence (max_apps=2)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{user_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"quota-test-{{$randomInt}}\",\n  \"tenant_name\": \"Quota Test\",\n  \"max_apps\": 2,\n  \"max_executions_per_24h\": 100,\n  \"valid_from\": \"2025-01-01T00:00:00Z\",\n  \"valid_to\": \"2026-01-01T00:00:00Z\",\n  \"generate_token\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/licenses/",
+                  "host": ["{{base_url}}"],
+                  "path": ["licenses", ""]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.token) {",
+                      "        pm.collectionVariables.set('license_token', jsonData.token);",
+                      "    }",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('license_id', jsonData.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "App 1 - Doit réussir",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"App 1\",\n  \"license_token\": \"{{license_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/apps/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["apps", "register"]
+                }
+              }
+            },
+            {
+              "name": "App 2 - Doit réussir",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"App 2\",\n  \"license_token\": \"{{license_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/apps/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["apps", "register"]
+                }
+              }
+            },
+            {
+              "name": "App 3 - Doit échouer (quota atteint)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"App 3\",\n  \"license_token\": \"{{license_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/apps/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["apps", "register"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should fail with 400 or 429', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 429]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "5.3 Scénario - Test Quota Exécutions",
+          "item": [
+            {
+              "name": "Prérequis: Créer licence (max_executions=5)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{user_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"exec-quota-test-{{$randomInt}}\",\n  \"tenant_name\": \"Execution Quota Test\",\n  \"max_apps\": 10,\n  \"max_executions_per_24h\": 5,\n  \"valid_from\": \"2025-01-01T00:00:00Z\",\n  \"valid_to\": \"2026-01-01T00:00:00Z\",\n  \"generate_token\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/licenses/",
+                  "host": ["{{base_url}}"],
+                  "path": ["licenses", ""]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.token) {",
+                      "        pm.collectionVariables.set('license_token', jsonData.token);",
+                      "    }",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('license_id', jsonData.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Créer une application",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test App\",\n  \"license_token\": \"{{license_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/apps/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["apps", "register"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('application_id', jsonData.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Job 1-5 - Doivent réussir",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"application_id\": \"{{application_id}}\",\n  \"name\": \"Job {{$randomInt}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/jobs/start",
+                  "host": ["{{base_url}}"],
+                  "path": ["jobs", "start"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        // Terminer immédiatement",
+                      "        var finishRequest = {",
+                      "            url: pm.collectionVariables.get('base_url') + '/jobs/finish',",
+                      "            method: 'POST',",
+                      "            header: {",
+                      "                'Content-Type': 'application/json',",
+                      "                'Authorization': 'Bearer ' + pm.collectionVariables.get('license_token')",
+                      "            },",
+                      "            body: {",
+                      "                mode: 'raw',",
+                      "                raw: JSON.stringify({",
+                      "                    job_id: jsonData.id,",
+                      "                    status: 'COMPLETED'",
+                      "                })",
+                      "            }",
+                      "        };",
+                      "        pm.sendRequest(finishRequest);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Job 6 - Doit échouer (quota atteint)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{license_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"application_id\": \"{{application_id}}\",\n  \"name\": \"Job 6\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/jobs/start",
+                  "host": ["{{base_url}}"],
+                  "path": ["jobs", "start"]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should fail with 429', function () {",
+                      "    pm.expect(pm.response.code).to.eql(429);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

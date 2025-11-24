@@ -1,0 +1,61 @@
+version: '3.8'
+
+# Configuration pour le développement avec hot-reload
+
+services:
+  # Backend Service (Spring Boot) - Mode développement
+  backend:
+    image: openjdk:21-jdk-slim
+    container_name: licensing-backend-dev
+    working_dir: /app
+    volumes:
+      # Montez votre projet backend ici
+      - ../backend:/app
+      - backend-maven-cache:/root/.m2
+    command: >
+      sh -c "
+      if [ -f ./mvnw ]; then
+        ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments='-Dspring.devtools.restart.enabled=true'
+      elif [ -f ./gradlew ]; then
+        ./gradlew bootRun --continuous
+      else
+        echo 'ERROR: No Maven or Gradle wrapper found.'
+        exit 1
+      fi
+      "
+    ports:
+      - "8080:8080"
+      - "35729:35729"  # LiveReload
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8080
+      - CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+    networks:
+      - licensing-network
+
+  # Frontend Service (Angular) - Mode développement avec hot-reload
+  frontend:
+    image: node:20-alpine
+    container_name: licensing-frontend-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm start -- --host 0.0.0.0 --poll 2000"
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    networks:
+      - licensing-network
+
+networks:
+  licensing-network:
+    driver: bridge
+
+volumes:
+  backend-maven-cache:
