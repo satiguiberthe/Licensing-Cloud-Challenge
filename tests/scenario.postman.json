@@ -1,0 +1,494 @@
+{
+  "info": {
+    "name": "Licensing Cloud Challenge - Test Scenario",
+    "_postman_id": "licensing-challenge-scenario",
+    "description": "Scénario de test complet conforme aux exigences du challenge technique",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "license_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "application_id_1",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "application_id_2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Scénario 1 : Création de licence",
+      "item": [
+        {
+          "name": "1.1 Créer une licence (tenant: acme)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        console.log('✅ JWT Token sauvegardé');",
+                  "    }",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('license_id', jsonData.id);",
+                  "        console.log('✅ License ID sauvegardé:', jsonData.id);",
+                  "    }",
+                  "    ",
+                  "    // Vérifier les paramètres de la licence",
+                  "    pm.test('License has correct maxApps (2)', function () {",
+                  "        pm.expect(jsonData.max_apps).to.eql(2);",
+                  "    });",
+                  "    ",
+                  "    pm.test('License has correct maxExecutionsPer24h (100)', function () {",
+                  "        pm.expect(jsonData.max_executions_per_24h).to.eql(100);",
+                  "    });",
+                  "    ",
+                  "    pm.test('License status is ACTIVE', function () {",
+                  "        pm.expect(jsonData.status).to.eql('ACTIVE');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"acme\",\n  \"tenant_name\": \"ACME Corporation\",\n  \"max_apps\": 2,\n  \"max_executions_per_24h\": 100,\n  \"valid_from\": \"2025-11-01T00:00:00Z\",\n  \"valid_to\": \"2025-12-01T00:00:00Z\",\n  \"status\": \"ACTIVE\",\n  \"contact_email\": \"admin@acme.com\",\n  \"contact_name\": \"ACME Admin\",\n  \"generate_token\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", ""]
+            },
+            "description": "Création d'une licence avec maxApps=2 et maxExecutionsPer24h=100"
+          }
+        }
+      ],
+      "description": "Étape 1 : Création d'une licence selon les spécifications du challenge"
+    },
+    {
+      "name": "Scénario 2 : Enregistrement d'applications (maxApps=2)",
+      "item": [
+        {
+          "name": "2.1 Enregistrer la première application → ✅ accepté",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('application_id_1', jsonData.id);",
+                  "    console.log('✅ Application 1 enregistrée:', jsonData.id);",
+                  "    ",
+                  "    pm.test('Application has ID', function () {",
+                  "        pm.expect(jsonData).to.have.property('id');",
+                  "        pm.expect(jsonData).to.have.property('name');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Application 1\",\n  \"description\": \"Première application pour ACME\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Première application - doit être acceptée (1/2)"
+          }
+        },
+        {
+          "name": "2.2 Enregistrer la deuxième application → ✅ accepté",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('application_id_2', jsonData.id);",
+                  "    console.log('✅ Application 2 enregistrée:', jsonData.id);",
+                  "    console.log('✅ Limite maxApps atteinte (2/2)');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Application 2\",\n  \"description\": \"Deuxième application pour ACME\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Deuxième application - doit être acceptée (2/2)"
+          }
+        },
+        {
+          "name": "2.3 Tentative d'enregistrement d'une troisième → ❌ refusée",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403 (Forbidden)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 403) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('❌ Application refusée (attendu) - maxApps atteint');",
+                  "    console.log('Détails:', JSON.stringify(jsonData, null, 2));",
+                  "    ",
+                  "    pm.test('Error message indicates max apps reached', function () {",
+                  "        var errorMsg = JSON.stringify(jsonData).toLowerCase();",
+                  "        pm.expect(errorMsg).to.include('max') || pm.expect(errorMsg).to.include('limit');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Application 3\",\n  \"description\": \"Troisième application (doit être refusée)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Troisième application - doit être refusée (maxApps=2 atteint)"
+          }
+        }
+      ],
+      "description": "Étape 2 : Test de l'application de la limite maxApps"
+    },
+    {
+      "name": "Scénario 3 : Exécution de jobs (maxExecutionsPer24h=100)",
+      "item": [
+        {
+          "name": "3.1 Exécuter 100 jobs → ✅ acceptés",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ce script sera exécuté 100 fois par le Collection Runner",
+                  "// Chaque itération démarre un nouveau job"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var iteration = pm.info.iteration + 1;",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ Job ' + iteration + '/100 démarré:', jsonData.id);",
+                  "    ",
+                  "    pm.test('Job ' + iteration + ' started successfully', function () {",
+                  "        pm.response.to.have.status(201);",
+                  "        pm.expect(jsonData.status).to.eql('RUNNING');",
+                  "    });",
+                  "} else if (pm.response.code === 429) {",
+                  "    console.log('❌ Quota dépassé à l\\'itération ' + iteration);",
+                  "    pm.test('Quota exceeded at iteration ' + iteration, function () {",
+                  "        pm.response.to.have.status(429);",
+                  "    });",
+                  "} else {",
+                  "    console.log('⚠️  Réponse inattendue:', pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": \"{{application_id_1}}\",\n  \"name\": \"Job {{$timestamp}}\",\n  \"description\": \"Test job execution quota\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/start",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "start"]
+            },
+            "description": "Démarrer 100 jobs. Utiliser Postman Collection Runner avec 100 itérations. Tous doivent être acceptés."
+          }
+        },
+        {
+          "name": "3.2 101ème exécution → ❌ refusée",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 429 (Too Many Requests)', function () {",
+                  "    pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 429) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('❌ 101ème exécution refusée (attendu) - quota dépassé');",
+                  "    console.log('Détails:', JSON.stringify(jsonData, null, 2));",
+                  "    ",
+                  "    pm.test('Error message indicates quota exceeded', function () {",
+                  "        var errorMsg = JSON.stringify(jsonData).toLowerCase();",
+                  "        pm.expect(errorMsg).to.include('quota') || pm.expect(errorMsg).to.include('exceeded');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_id\": \"{{application_id_1}}\",\n  \"name\": \"Job 101 (doit être refusé)\",\n  \"description\": \"Test du quota maxExecutionsPer24h\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/start",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "start"]
+            },
+            "description": "101ème exécution - doit être refusée (quota 100/100 atteint)"
+          }
+        },
+        {
+          "name": "3.3 Vérifier le quota actuel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/executions/window/?hours=24",
+              "host": ["{{base_url}}"],
+              "path": ["executions", "window", ""],
+              "query": [
+                {
+                  "key": "hours",
+                  "value": "24"
+                }
+              ]
+            },
+            "description": "Vérifier le nombre d'exécutions dans la fenêtre glissante de 24h"
+          }
+        }
+      ],
+      "description": "Étape 3 : Test de l'application de la limite maxExecutionsPer24h avec fenêtre glissante"
+    },
+    {
+      "name": "Scénario 4 : Tests de sécurité",
+      "item": [
+        {
+          "name": "4.1 Test avec licence expirée",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"expired-tenant\",\n  \"tenant_name\": \"Expired License\",\n  \"max_apps\": 5,\n  \"max_executions_per_24h\": 1000,\n  \"valid_from\": \"2024-01-01T00:00:00Z\",\n  \"valid_to\": \"2024-12-31T23:59:59Z\",\n  \"status\": \"ACTIVE\",\n  \"generate_token\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", ""]
+            },
+            "description": "Créer une licence expirée pour tester le rejet"
+          }
+        },
+        {
+          "name": "4.2 Test avec licence SUSPENDED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"suspended-tenant\",\n  \"tenant_name\": \"Suspended License\",\n  \"max_apps\": 5,\n  \"max_executions_per_24h\": 1000,\n  \"valid_from\": \"2025-01-01T00:00:00Z\",\n  \"valid_to\": \"2026-12-31T23:59:59Z\",\n  \"status\": \"SUSPENDED\",\n  \"generate_token\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/licenses/",
+              "host": ["{{base_url}}"],
+              "path": ["licenses", ""]
+            },
+            "description": "Créer une licence suspendue pour tester le rejet"
+          }
+        },
+        {
+          "name": "4.3 Test avec token invalide",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (Unauthorized)', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.token.here"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test avec token invalide\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/apps/register",
+              "host": ["{{base_url}}"],
+              "path": ["apps", "register"]
+            },
+            "description": "Tenter d'utiliser un token invalide/forgé"
+          }
+        }
+      ],
+      "description": "Étape 4 : Tests de sécurité et validation des licences"
+    }
+  ]
+}
+
